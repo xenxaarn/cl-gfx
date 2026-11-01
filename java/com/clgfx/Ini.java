@@ -254,7 +254,7 @@ final class Ini {
         m.put("r.PUBGDeviceFPSMid", fps);
         m.put("r.PUBGDeviceFPSHigh", fps);
         if (o.lite) {
-            // The reference's Lite branch only rewrites Low/Mid/High; HDR keeps the
+            // The Lite branch only rewrites Low/Mid/High; HDR keeps the
             // template value (40). r.DeviceFPSLevel is fixed at 6 in the template.
             return;
         }
@@ -265,7 +265,7 @@ final class Ini {
         if (o.aa <= 0) {
             return;
         }
-        // The reference maps both 2X and 4X to the same PUBG MSAA profile.
+        // Both 2X and 4X map to the same PUBG MSAA profile.
         m.put("r.DefaultFeature.AntiAliasing", "3.0");
         m.put("r.UserMSAASetting", "1");
         m.put("r.MobileMSAA", "2.0");

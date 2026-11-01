@@ -200,7 +200,7 @@ public final class MainActivity extends Activity {
         water = addRow(root, "Water reflections", "faq*.ini WaterReflectionSetting",
                 Ini.WATER, 0, null);
         profileSpinner = addRow(root, "Render profile (Active.sav)",
-                "Install matching GVAS profile; existing file is backed up",
+                "Merge matching render settings; sensitivity and gyro are kept",
                 new String[]{"Skip", "Install"}, 1, null);
 
         applyButton = button("Apply");
@@ -525,7 +525,11 @@ public final class MainActivity extends Activity {
                 report.append("Active.sav (" + asset + "): "
                         + (installed ? "ok" : "FAILED") + "\n");
                 if (installed) {
-                    report.append("previous Active.sav kept as Active.sav.clgfx.bak\n");
+                    if (storage.lastDetail() != null) {
+                        report.append(storage.lastDetail()).append('\n');
+                    }
+                } else if (storage.lastError() != null) {
+                    report.append("  ").append(storage.lastError()).append('\n');
                 }
                 ok &= installed;
             }
@@ -592,7 +596,7 @@ public final class MainActivity extends Activity {
         pendingExport = Ini.encode(Ini.build(o)).getBytes(StandardCharsets.UTF_8);
         Intent i = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         i.addCategory(Intent.CATEGORY_OPENABLE);
-        i.setType("text/plain");
+        i.setType("application/octet-stream");
         i.putExtra(Intent.EXTRA_TITLE, "UserCustom.ini");
         try {
             startActivityForResult(i, REQ_EXPORT);

@@ -29,6 +29,19 @@ Android 13+ file-execution support through Shizuku.
   (`Shizuku user service`, `direct storage`, or `SAF tree`).
 - Status/UI text explains the Android 13+ requirement instead of only suggesting SAF.
 
+### Fixed
+- Applying a render profile no longer replaces the user's `Active.sav`. Only the
+  seven render `IntProperty` values (`FPSLevel`, `BattleFPS`, `LobbyFPS`,
+  `BattleRenderStyle`, `BattleRenderQuality`, `LobbyRenderStyle`,
+  `LobbyRenderQuality`) are merged by property name. Sensitivity, gyroscope and all
+  other bytes are preserved, and the file length stays the same. The full asset is
+  copied only when no `Active.sav` exists. China/Lite profiles merge `FPSLevel` only.
+- A malformed `Active.sav`, or one missing a property present in the chosen profile,
+  now fails with a specific reason instead of being overwritten.
+- Exporting `UserCustom.ini` uses `application/octet-stream`, so the document picker
+  no longer appends `.txt` to the filename.
+- `docs/config-format.md` documents the GVAS layout and the merge algorithm.
+
 ### Preserved
 - Android 10–12 direct and SAF behaviour is unchanged.
 - One-time `Active.sav.clgfx.bak`, `UserCustom.ini.clgfx.bak` and

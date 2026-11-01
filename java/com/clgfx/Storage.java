@@ -43,6 +43,8 @@ final class Storage {
     private boolean safSaved;  // tree root is the Saved folder
     private String safPkg;     // package the resolved prefix belongs to
     private ShizukuBridge shizuku;
+    private String lastError;  // why installProfile() failed, if it did
+    private String lastDetail; // what installProfile() did on success
 
     Storage(Context ctx) {
         this.ctx = ctx.getApplicationContext();
@@ -62,6 +64,16 @@ final class Storage {
             return "Shizuku user service";
         }
         return mode == MODE_DIRECT ? "direct storage" : "SAF tree";
+    }
+
+    /** Human-readable reason the last {@link #installProfile} failed, or null. */
+    String lastError() {
+        return lastError;
+    }
+
+    /** Human-readable summary of the last successful {@link #installProfile}. */
+    String lastDetail() {
+        return lastDetail;
     }
 
     void setShizuku(ShizukuBridge bridge) {
@@ -196,22 +208,63 @@ final class Storage {
         return write(pkg, rel, data);
     }
 
-    /** Back up Active.sav once, then install the profile asset. */
+    /**
+     * Back up Active.sav once, then install the profile.
+     *
+     * <p>When the user already has an Active.sav, only the render IntProperties in
+     * {@link Gvas#MERGE_PROPERTIES} are copied from the profile asset. Sensitivity,
+     * gyroscope and every other byte are preserved, and the file keeps its length.
+     * The whole asset is copied only when no Active.sav exists yet.
+     */
     boolean installProfile(String pkg, String asset) {
+        lastError = null;
+        lastDetail = null;
         String active = "Saved/SaveGames/Active.sav";
         String backup = active + ".clgfx.bak";
         boolean activeExists = exists(pkg, active);
         byte[] current = read(pkg, active);
         if (activeExists && current == null) {
             // Do not overwrite a layout we cannot read: the backup would be lost.
+            lastError = "existing Active.sav cannot be read; refusing to overwrite";
             return false;
         }
         if (current != null && read(pkg, backup) == null) {
             if (!write(pkg, backup, current)) {
+                lastError = "cannot write Active.sav.clgfx.bak";
                 return false;
             }
         }
-        return copyAsset(pkg, asset, active);
+
+        if (current == null) {
+            if (!copyAsset(pkg, asset, active)) {
+                lastError = "cannot write " + active;
+                return false;
+            }
+            lastDetail = "no existing Active.sav; installed the full profile";
+            return true;
+        }
+
+        byte[] source;
+        try {
+            InputStream in = ctx.getAssets().open(asset);
+            source = readAll(in);
+        } catch (IOException e) {
+            lastError = "profile asset " + asset + " is unreadable";
+            return false;
+        }
+
+        Gvas.MergeResult result = Gvas.merge(current, source);
+        if (result.data == null) {
+            lastError = result.error;
+            return false;
+        }
+        if (!write(pkg, active, result.data)) {
+            lastError = "cannot write the merged Active.sav";
+            return false;
+        }
+        lastDetail = "kept existing file; merged render settings only "
+                + "(sensitivity and gyro preserved), backup: Active.sav.clgfx.bak";
+        return true;
     }
 
     boolean restoreActive(String pkg) {

@@ -36,7 +36,7 @@ Ini.build(game, options)  ──►  LinkedHashMap<key,value>  ──►  encode
    │
    ├── Storage.write("Saved/Config/Android/UserCustom.ini", text)
    ├── Storage.copyAsset("faqN.ini", "Saved/Config/Android/UserSettings.ini")
-   └── Storage.copyAsset(profile, "Saved/SaveGames/Active.sav")   (optional)
+   └── Storage.installProfile(profile)  →  Gvas.merge(...)          (optional)
    │
    ▼
 status log in the UI
@@ -109,9 +109,12 @@ writes compare the stored bytes.
 
 ## Safety
 
-- `Active.sav` is copied to `Active.sav.clgfx.bak` before the first overwrite; the
-  backup is never overwritten afterwards. If `Active.sav` exists but cannot be read,
-  the install is refused rather than destroying the only copy.
+- `Active.sav` is copied to `Active.sav.clgfx.bak` before the first change; the
+  backup is never overwritten afterwards. If `Active.sav` exists, only the seven
+  render integers are merged by name (`Gvas.java`), so sensitivity and gyroscope
+  settings survive. A malformed file, or one missing a property carried by the
+  chosen profile, is refused rather than overwritten. The full asset is copied only
+  when no `Active.sav` exists.
 - `UserCustom.ini` is backed up to `UserCustom.ini.clgfx.bak` and `UserSettings.ini`
   to `UserSettings.ini.clgfx.bak` before the first write.
 - Nothing outside the selected game's `Saved/` tree is written.

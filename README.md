@@ -14,8 +14,8 @@ gating, no remote calls and no network permission.
 
 1. Builds a complete `UserCustom.ini` for the selected game using PUBG's own
    `[UserCustom DeviceProfile]` / `+CVars=<hex-xor>` format.
-2. Optionally installs a matching render/control profile (`Active.sav`) after backing
-   up the existing one.
+2. Optionally installs a matching render profile into `Active.sav`, merging only the
+   render settings so the existing sensitivity/gyro values are kept.
 3. Writes the matching sound/water block (shipped as `faq1..6.ini` assets) into
    `UserSettings.ini`.
 4. Can launch the selected game.
